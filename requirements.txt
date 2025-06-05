@@ -32,6 +32,9 @@ torch==1.13.1
 # weaviate-client==3.0.0
 # pymilvus==2.0.2
 
+# Elasticsearch
+elasticsearch==8.10.0
+
 # Graph Databases
 gremlinpython==3.6.1
 neptune-client==1.1.0

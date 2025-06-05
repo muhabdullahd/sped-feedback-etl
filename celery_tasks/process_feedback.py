@@ -1,5 +1,6 @@
 from celery_tasks.celery import app
 from utils.logger import get_logger
+from elastic_search.search import index_feedback
 
 logger = get_logger(__name__)
 
@@ -30,6 +31,21 @@ def analyze_feedback(self, feedback_data):
             "topics": [],  # Placeholder
             "status": "processed"
         }
+        
+        # Add analysis results to the feedback data
+        feedback_data.update({
+            "sentiment": results["sentiment"],
+            "entities": results["entities"],
+            "topics": results["topics"],
+            "status": "processed"
+        })
+        
+        # Index the processed feedback in Elasticsearch
+        index_success = index_feedback(feedback_data)
+        if index_success:
+            logger.info(f"Successfully indexed feedback {feedback_data.get('id', 'unknown')} in Elasticsearch")
+        else:
+            logger.error(f"Failed to index feedback {feedback_data.get('id', 'unknown')} in Elasticsearch")
         
         logger.info(f"Successfully processed feedback {feedback_data.get('id', 'unknown')}")
         return results

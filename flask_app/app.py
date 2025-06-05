@@ -2,6 +2,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_app.models import db, Feedback
 from flask_app.config import Config
+from elastic_search.search import (
+    search_feedback, 
+    search_feedback_by_category,
+    search_feedback_by_sentiment,
+    advanced_feedback_search,
+    initialize_indices
+)
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -11,11 +18,64 @@ CORS(app)
 # Create tables if they don't exist
 with app.app_context():
     db.create_all()
+    # Initialize Elasticsearch indices
+    initialize_indices()
 
 @app.route('/health', methods=['GET'])
 def health_check():
     """Simple health check endpoint."""
     return jsonify({"status": "healthy", "service": "sped-feedback-etl"}), 200
+
+@app.route('/search-feedback', methods=['GET'])
+def search_feedback_endpoint():
+    """
+    Search for feedback using various criteria.
+    
+    Query parameters:
+    - q: Text query (optional)
+    - category: Filter by category (optional)
+    - sentiment: Filter by sentiment (optional)
+    - min_rating: Minimum rating (optional)
+    - max_rating: Maximum rating (optional)
+    - size: Number of results to return (optional, default=10)
+    """
+    try:
+        # Extract search parameters
+        text = request.args.get('q')
+        category = request.args.get('category')
+        sentiment = request.args.get('sentiment')
+        min_rating = request.args.get('min_rating')
+        max_rating = request.args.get('max_rating')
+        size = request.args.get('size', 10, type=int)
+        
+        # Convert rating parameters to integers if provided
+        if min_rating:
+            min_rating = int(min_rating)
+        if max_rating:
+            max_rating = int(max_rating)
+        
+        # Perform search
+        search_results = advanced_feedback_search(
+            text=text,
+            category=category,
+            sentiment=sentiment,
+            min_rating=min_rating,
+            max_rating=max_rating,
+            size=size
+        )
+        
+        return jsonify({
+            "status": "success",
+            "results": search_results["hits"],
+            "total": search_results["total"],
+            "max_score": search_results["max_score"]
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route('/submit-feedback', methods=['POST'])
 def submit_feedback():

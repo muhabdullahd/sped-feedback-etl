@@ -50,7 +50,12 @@ The project follows a modular architecture with the following components:
    - Supports high-throughput operations and flexible schema
    - Primary persistent storage for the system
 
-7. **Utilities** - `utils/`
+7. **Elasticsearch** - `elastic_search/`
+   - Full-text search and analytics engine
+   - Indexes feedback data for fast and powerful text search capabilities
+   - Supports advanced queries for finding patterns in feedback
+
+8. **Utilities** - `utils/`
    - Shared logging, validation, and helper functions
    - Common code used across different components
 
@@ -73,6 +78,7 @@ The project follows a modular architecture with the following components:
 - Access to AWS (for DynamoDB)
 - A vector database (e.g., Pinecone, Weaviate, or Milvus)
 - A graph database (e.g., Neo4j)
+- Elasticsearch (for text search)
 
 ### Installation
 
@@ -93,11 +99,37 @@ The project follows a modular architecture with the following components:
    pip install -r requirements.txt
    ```
 
-4. Set up environment variables (create a `.env` file in the project root):
+4. Set up Elasticsearch:
+   ```bash
+   ./setup_elasticsearch.sh
+   ```
+
+5. Set up environment variables (create a `.env` file in the project root):
    ```
    # Flask settings
    FLASK_APP=flask_app.app
    FLASK_ENV=development
+   
+   # Database settings
+   SQLALCHEMY_DATABASE_URI=mysql+pymysql://username:password@localhost/sped_feedback
+   
+   # Vector DB settings
+   VECTOR_DB_HOST=localhost
+   VECTOR_DB_PORT=6333
+   
+   # Graph DB settings
+   GRAPH_DB_HOST=localhost
+   GRAPH_DB_PORT=8182
+   
+   # AWS settings
+   AWS_ACCESS_KEY_ID=your_access_key
+   AWS_SECRET_ACCESS_KEY=your_secret_key
+   AWS_REGION=us-east-1
+   
+   # Elasticsearch settings
+   ELASTICSEARCH_HOST=localhost
+   ELASTICSEARCH_PORT=9200
+   ```
    SECRET_KEY=your-secret-key
 
    # AWS settings
